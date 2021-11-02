@@ -1,5 +1,6 @@
-# Slice-Manager
-An Aseprite script for managing large amount of slices 
+# Slice Manager
+
+Slice Manager is an Aseprite script for managing large amount of slices quickly
 
 <br />
 
