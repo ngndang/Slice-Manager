@@ -64,6 +64,8 @@ export_dialog
         label = "Scale (%)",
         option = 100,
         options = { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 25, 50}}
+    :check{ id="exportAll", text="Export all slices", selected = false}
+    :newrow{}
     :check{ id="subfolder", text="Create sub folder", selected = true}
     :newrow{}
     :check{ id="prefix", text="Add sprite name as prefix", selected = false}
@@ -119,7 +121,7 @@ manager_dialog
     end }
 
     :separator{ text = "Export"}
-    :button{ text = "Export Selected Slices", onclick= function() 
+    :button{ text = "Export Slices", onclick= function() 
         export_dialog:show{wait = false}
     end }
 
@@ -218,7 +220,7 @@ function removeSelectedSlices() -- Remove selected Slices
             end
         end
 
-        if deleted > 1 then app.alert(deleted .. " slices were deleted") else app.alert(deleted .. " slice was deleted") end
+        finishedAlert(deleted, "deleted")
     end)
 end
 --------------------Export Functions-----------------------
@@ -226,24 +228,32 @@ end
 local initial_path = getPath(sprite.filename, separator)
 local spriteName = getFileName(sprite.filename, separator)
 local path
-if export_dialog.data.subfolder then
-    path = getPath(export_dialog.data.dir, separator) .. spriteName .. "_Slices" .. separator
-else 
-    path = getPath(export_dialog.data.dir, separator)
+function findExportPath()
+    if export_dialog.data.subfolder then
+        return getPath(export_dialog.data.dir, separator) .. spriteName .. "_Slices" .. separator
+    else 
+        return getPath(export_dialog.data.dir, separator)
+    end
 end
 
 function exportSlices()
     exported = 0
+    path = findExportPath()
     local temp_bounds = initial_bounds
     local ratio = export_dialog.data.scale * 0.01  
+    local bounds 
+
+    if not export_dialog.data.exportAll then
+        Check()
+        bounds = selection.bounds
+    else 
+        bounds = sprite.bounds
+    end
 
     for i, slice in ipairs(sprite.slices) do
-        sli = slice.bounds
-        sel = selection.bounds
 
         --Check if this slice is inside the selection
-        if  sli.x + 1 > sel.x and sli.x + sli.width - 1 < sel.x + sel.width and
-            sli.y + 1 > sel.y and sli.y + sli.height - 1 < sel.y + sel.height
+        if  bounds:contains(slice.bounds)
         then
             temp_bounds.x = temp_bounds.x - slice.bounds.x
             temp_bounds.y = temp_bounds.y - slice.bounds.y
@@ -266,8 +276,7 @@ function exportSlices()
             exported = exported + 1
         end
     end
-    
-    if exported > 1 then app.alert(exported .. " slices were exported") else app.alert(exported .. " slice was exported") end
+    finishedAlert(exported, "exported")
 end 
 
 
